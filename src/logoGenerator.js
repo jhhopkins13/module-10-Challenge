@@ -1,34 +1,53 @@
-import { Svg, Path, Circle, Rect, Text } from 'svg-builder';
+const inquirer = require('inquirer');
+const fs = require('fs');
+const { generateSVGCode } = require('./utils/svgUtils');
 
 class LogoGenerator {
-  constructor(text, textColor, shape, shapeColor) {
-    this.text = text;
-    this.textColor = textColor;
-    this.shape = shape;
-    this.shapeColor = shapeColor;
+  constructor() {
+    this.text = '';
+    this.textColor = '';
+    this.shape = '';
+    this.shapeColor = '';
   }
 
-  generateLogo() {
-    const svg = new Svg(300, 200);
+  async promptUser() {
+    const questions = [
+      {
+        type: 'input',
+        name: 'text',
+        message: 'Enter up to three characters for the logo:',
+        validate: (input) => input.length > 0 && input.length <= 3,
+      },
+      {
+        type: 'input',
+        name: 'textColor',
+        message: 'Enter the text color (keyword or hexadecimal number):',
+        validate: (input) => input.length > 0,
+      },
+      {
+        type: 'list',
+        name: 'shape',
+        message: 'Choose a shape for the logo:',
+        choices: ['circle', 'triangle', 'square'],
+      },
+      {
+        type: 'input',
+        name: 'shapeColor',
+        message: 'Enter the shape color (keyword or hexadecimal number):',
+        validate: (input) => input.length > 0,
+      },
+    ];
 
-    if (this.shape === 'circle') {
-      // Draw a circle 
-      const circle = new Circle(150, 100, 50).attr('fill', this.shapeColor);
-      svg.append(circle);
-    } else if (this.shape === 'triangle') {
-     // Draw a triangle
-      const path = new Path().moveTo(100, 150).lineTo(200, 150).lineTo(150, 50).close().attr('fill', this.shapeColor);
-      svg.append(path);
-    } else if (this.shape === 'square') {
-      // Draw a square
-      const rect = new Rect(100, 50, 100, 100).attr('fill', this.shapeColor);
-      svg.append(rect);
-    }
+    const answers = await inquirer.prompt(questions);
+    this.text = answers.text;
+    this.textColor = answers.textColor;
+    this.shape = answers.shape;
+    this.shapeColor = answers.shapeColor;
+  }
 
-    const text = new Svg.Text(this.text).attr('x', 150).attr('y', 130).attr('fill', this.textColor);
-    svg.append(text);
-
-    return svg.toString();
+  generateSVG() {
+    const svgCode = generateSVGCode(this.text, this.textColor, this.shape, this.shapeColor);
+    fs.writeFileSync('logo.svg', svgCode);
   }
 }
 
